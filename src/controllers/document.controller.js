@@ -1,6 +1,5 @@
 const Document = require("../models/Document");
 
-// Create new document
 exports.createDocument = async (req, res) => {
   try {
     const { title } = req.body;
@@ -33,7 +32,6 @@ exports.createDocument = async (req, res) => {
   }
 };
 
-// Get all documents for logged-in user
 exports.getAllDocuments = async (req, res) => {
   try {
     const documents = await Document.find({
@@ -76,7 +74,6 @@ exports.getDocument = async (req, res) => {
       });
     }
 
-    // Check if user has access
     const hasAccess =
       document.owner._id.toString() === req.user.id ||
       document.collaborators.some(
@@ -105,7 +102,6 @@ exports.getDocument = async (req, res) => {
   }
 };
 
-// Update document
 exports.updateDocument = async (req, res) => {
   try {
     const { title, content } = req.body;
@@ -119,7 +115,6 @@ exports.updateDocument = async (req, res) => {
       });
     }
 
-    // Check if user has access
     const hasAccess =
       document.owner.toString() === req.user.id ||
       document.collaborators.some(
@@ -133,7 +128,6 @@ exports.updateDocument = async (req, res) => {
       });
     }
 
-    // Update fields
     if (title) document.title = title;
     if (content !== undefined) document.content = content;
 
@@ -154,7 +148,6 @@ exports.updateDocument = async (req, res) => {
   }
 };
 
-// Delete document
 exports.deleteDocument = async (req, res) => {
   try {
     const document = await Document.findById(req.params.id);
@@ -166,7 +159,6 @@ exports.deleteDocument = async (req, res) => {
       });
     }
 
-    // Only owner can delete
     if (document.owner.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
@@ -190,7 +182,6 @@ exports.deleteDocument = async (req, res) => {
   }
 };
 
-// Save document version
 exports.saveVersion = async (req, res) => {
   try {
     const document = await Document.findById(req.params.id);
@@ -202,7 +193,6 @@ exports.saveVersion = async (req, res) => {
       });
     }
 
-    // Check access
     const hasAccess =
       document.owner.toString() === req.user.id ||
       document.collaborators.some(
@@ -216,7 +206,6 @@ exports.saveVersion = async (req, res) => {
       });
     }
 
-    // Save new version
     document.versions.push({
       content: document.content,
       savedBy: req.user.id,
@@ -240,7 +229,6 @@ exports.saveVersion = async (req, res) => {
   }
 };
 
-// Restore document to previous version
 exports.restoreVersion = async (req, res) => {
   try {
     const { versionId } = req.body;
@@ -267,8 +255,6 @@ exports.restoreVersion = async (req, res) => {
         message: "Access denied"
       });
     }
-
-    // Find version
     const version = document.versions.id(versionId);
     if (!version) {
       return res.status(404).json({
@@ -277,7 +263,6 @@ exports.restoreVersion = async (req, res) => {
       });
     }
 
-    // Restore content
     document.content = version.content;
     await document.save();
 
@@ -296,7 +281,6 @@ exports.restoreVersion = async (req, res) => {
   }
 };
 
-// Add collaborator
 exports.addCollaborator = async (req, res) => {
   try {
     const { email } = req.body;
@@ -318,7 +302,6 @@ exports.addCollaborator = async (req, res) => {
       });
     }
 
-    // Find user by email
     const User = require("../models/User");
     const collaborator = await User.findOne({ email });
 
@@ -329,7 +312,6 @@ exports.addCollaborator = async (req, res) => {
       });
     }
 
-    // Check if already collaborator
     if (document.collaborators.includes(collaborator._id)) {
       return res.status(400).json({
         success: false,
