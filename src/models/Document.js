@@ -49,7 +49,6 @@ const documentSchema = new mongoose.Schema(
   }
 );
 
-// Auto-save first version on document creation
 documentSchema.pre("save", function (next) {
   if (this.isNew) {
     this.versions.push({

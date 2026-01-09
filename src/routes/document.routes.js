@@ -21,11 +21,9 @@ router.get("/:id", getDocument);
 router.put("/:id", updateDocument);
 router.delete("/:id", deleteDocument);
 
-// Version control
 router.post("/:id/versions", saveVersion);
 router.post("/:id/restore", restoreVersion);
 
-// Collaborators
 router.post("/:id/collaborators", addCollaborator);
 
 module.exports = router;

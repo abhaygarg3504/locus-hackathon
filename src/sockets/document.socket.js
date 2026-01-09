@@ -2,15 +2,12 @@ const Document = require("../models/Document");
 
 module.exports = (io) => {
   io.on("connection", (socket) => {
-    console.log("✅ User connected:", socket.id);
+    console.log("User connected:", socket.id);
 
-    // Join document room
     socket.on("join-document", async (docId) => {
       try {
         socket.join(docId);
         console.log(`User ${socket.id} joined document ${docId}`);
-
-        // Get current document state
         const document = await Document.findById(docId);
         if (document) {
           socket.emit("document-loaded", document.content);
@@ -20,11 +17,9 @@ module.exports = (io) => {
         socket.emit("error", { message: "Error joining document" });
       }
     });
-
-    // Handle document changes
     socket.on("edit-document", async ({ docId, content, userId }) => {
       try {
-        // Update document in database
+        
         const document = await Document.findByIdAndUpdate(
           docId,
           { content },
@@ -36,7 +31,6 @@ module.exports = (io) => {
           return;
         }
 
-        // Broadcast to all users in the room except sender
         socket.to(docId).emit("document-updated", {
           content,
           updatedBy: userId,
@@ -49,8 +43,6 @@ module.exports = (io) => {
         socket.emit("error", { message: "Error updating document" });
       }
     });
-
-    // Save version (manual save by user)
     socket.on("save-version", async ({ docId, userId }) => {
       try {
         const document = await Document.findById(docId);
@@ -59,8 +51,6 @@ module.exports = (io) => {
           socket.emit("error", { message: "Document not found" });
           return;
         }
-
-        // Save new version
         document.versions.push({
           content: document.content,
           savedBy: userId,
@@ -82,24 +72,20 @@ module.exports = (io) => {
       }
     });
 
-    // Handle cursor position (for showing other users' cursors)
-    socket.on("cursor-position", ({ docId, userId, position, userName }) => {
+     socket.on("cursor-position", ({ docId, userId, position, userName }) => {
       socket.to(docId).emit("user-cursor", {
         userId,
         userName,
         position
       });
     });
-
-    // Leave document room
     socket.on("leave-document", (docId) => {
       socket.leave(docId);
       console.log(`User ${socket.id} left document ${docId}`);
     });
 
-    // Handle disconnection
     socket.on("disconnect", () => {
-      console.log("❌ User disconnected:", socket.id);
+      console.log("User disconnected:", socket.id);
     });
   });
 };
